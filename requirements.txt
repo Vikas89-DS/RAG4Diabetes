@@ -1,0 +1,18 @@
+llama-index
+llama-index-llms-gemini
+llama-index chromadb
+llama-index-embeddings-ollama
+llama-index-llms-ollama
+chromadb
+google-generativeai
+fastapi
+uvicorn
+streamlit
+pydantic
+python-dotenv
+numpy
+pandas
+tqdm
+requests
+ipykernel
+ragas

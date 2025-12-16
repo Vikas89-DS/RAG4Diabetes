@@ -1,137 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RAG4Diabetes – Production-Ready RAG System</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 24px;
+      line-height: 1.6;
+      color: #1f2937;
+    }
+    h1, h2, h3 {
+      color: #0f4c81;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.95em;
+    }
+    pre {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #eef5ff;
+      border-left: 4px solid #0f4c81;
+      padding: 14px;
+      margin: 18px 0;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    hr {
+      margin: 32px 0;
+    }
+  </style>
+</head>
+<body>
+
 <h1>RAG4Diabetes</h1>
 
 <p>
-<b>RAG4Diabetes</b> is a production-oriented <b>Retrieval-Augmented Generation (RAG)</b> project
-focused on answering questions from <b>diabetes-related medical documents</b>.
-The system is designed to generate accurate, context-grounded answers
-strictly based on indexed source documents.
+<b>RAG4Diabetes</b> is a <b>production-ready Retrieval-Augmented Generation (RAG)</b> system
+designed to answer diabetes-related medical questions strictly from provided documents.
+The system focuses on correctness, reproducibility, and clean engineering practices.
 </p>
 
-<hr/>
+<hr>
 
-<h2>Project Overview</h2>
+<h2>Why This Project Exists</h2>
 
 <p>
-This project demonstrates how to design a clean and reliable RAG pipeline
-that can ingest large medical documents, store them efficiently,
-retrieve relevant information, and generate concise answers using an LLM.
+Medical documents such as guidelines, PDFs, and reports are large and unstructured.
+Simple keyword search fails to capture context, while naive LLM usage risks hallucination.
 </p>
 
 <p>
-A key goal of the system is to ensure that responses are grounded in retrieved
-context only, avoiding hallucinations or use of external knowledge.
+This project solves the problem by:
 </p>
 
-<hr/>
-
-<h2>High-Level Architecture</h2>
-
-<pre>
-Medical Documents (PDF / Text)
-        ↓
-Idempotent Ingestion (hash-based)
-        ↓
-Sentence-Based Chunking
-        ↓
-Vector Embeddings
-        ↓
-Persistent Vector Store (ChromaDB)
-        ↓
-Semantic Retrieval
-        ↓
-Context-Grounded Answer Generation
-</pre>
-
-<hr/>
-
-<h2>Key Design Principles</h2>
-
 <ul>
-  <li>
-    <b>Idempotent Ingestion:</b>
-    Documents and chunks are hashed to prevent duplicate processing
-    during repeated runs.
-  </li>
-  <li>
-    <b>Persistent Storage:</b>
-    Vector embeddings are stored in a persistent database,
-    ensuring data survives application restarts.
-  </li>
-  <li>
-    <b>Context-Only Answers:</b>
-    The language model is explicitly instructed to answer
-    only using retrieved document context.
-  </li>
-  <li>
-    <b>Production-Oriented Design:</b>
-    Emphasis is placed on clarity, reproducibility,
-    and predictable system behavior.
-  </li>
+  <li>Grounding every answer in retrieved document context</li>
+  <li>Preventing duplicate embeddings using idempotent ingestion logic</li>
+  <li>Using hybrid retrieval to improve recall and precision</li>
 </ul>
 
-<hr/>
+<hr>
 
-<h2>Technology Stack</h2>
+<h2>System Architecture</h2>
 
 <ul>
-  <li><b>Language Model:</b> Gemini (Google)</li>
-  <li><b>Embeddings:</b> Ollama (nomic-embed-text)</li>
-  <li><b>Vector Database:</b> ChromaDB</li>
-  <li><b>RAG Framework:</b> LlamaIndex</li>
+  <li><b>Document Loader:</b> Recursively loads PDFs and text files from a configurable directory</li>
+  <li><b>Chunking:</b> Sentence-aware chunking with overlap for better semantic continuity</li>
+  <li><b>Embeddings:</b> Local Ollama embedding model (cost-efficient and offline-friendly)</li>
+  <li><b>Vector Store:</b> Persistent ChromaDB for long-term storage</li>
+  <li><b>Retrieval:</b> Hybrid retrieval using Vector Search + BM25</li>
+  <li><b>Query Fusion:</b> Multi-query expansion to improve recall</li>
+  <li><b>Re-Ranking:</b> LLM-based reranking to select the most relevant chunks</li>
 </ul>
 
-<hr/>
+<hr>
 
-<h2>Project Structure</h2>
+<h2>Idempotent Data Ingestion</h2>
+
+<div class="box">
+This project is designed to be safely re-run multiple times without corrupting
+or duplicating the vector database.
+</div>
+
+<p>
+Key idempotency guarantees:
+</p>
+
+<ul>
+  <li>Each chunk is hashed using SHA-256</li>
+  <li>Chunk hashes are stored as metadata inside ChromaDB</li>
+  <li>On every run, existing hashes are checked before embedding</li>
+  <li>Only new or unseen chunks are embedded and inserted</li>
+</ul>
+
+<p>
+As a result:
+</p>
+
+<ul>
+  <li>Re-running the script does not recreate embeddings</li>
+  <li>Existing data remains untouched</li>
+  <li>New documents are incrementally indexed</li>
+</ul>
+
+<hr>
+
+<h2>Prompt Safety</h2>
+
+<p>
+The system enforces strict prompt rules:
+</p>
+
+<ul>
+  <li>Answers must be generated only from retrieved context</li>
+  <li>No external knowledge is allowed</li>
+  <li>If information is missing, the model must explicitly state it</li>
+</ul>
+
+<p>
+This significantly reduces hallucination and improves trustworthiness.
+</p>
+
+<hr>
+
+<h2>Configuration</h2>
+
+<p>
+All configuration is managed via a <code>.env</code> file:
+</p>
 
 <pre>
-RAG4Diabetes/
-│
-├── rag4diabetes.py    # Core RAG pipeline (ingestion, retrieval, generation)
-├── data/              # Input medical documents
-├── chroma_db/         # Persistent vector store
-├── requirements.txt
-└── README.md
-</pre>
-
-<hr/>
-
-<h2>How to Run</h2>
-
-<h3>1. Install Dependencies</h3>
-
-<pre>
-pip install -r requirements.txt
-</pre>
-
-<h3>2. Set Environment Variables</h3>
-
-<pre>
+DATA_DIR=./data
+CHROMA_PATH=./chroma_db
+COLLECTION_NAME=diabetes_vectors
 GEMINI_API_KEY=your_api_key_here
 </pre>
 
-<h3>3. Run the Application</h3>
+<p>
+This makes the project portable across environments (local, Docker, cloud).
+</p>
 
-<pre>
-python rag4diabetes.py
-</pre>
+<hr>
 
-<hr/>
-
-<h2>Why This Project Matters</h2>
-
-<ul>
-  <li>Demonstrates real-world RAG design beyond basic demos</li>
-  <li>Handles incremental document updates correctly</li>
-  <li>Focuses on reliability and grounded responses</li>
-  <li>Can serve as a foundation for enterprise knowledge systems</li>
-</ul>
-
-<hr/>
+<h2>Query Execution</h2>
 
 <p>
-<b>Note:</b><br/>
-For clarity and ease of review, the pipeline is intentionally kept in a single file.
-In production environments, the same logic can be modularized without changing
-the overall design.
+The core query interface is exposed via a single function:
 </p>
+
+<pre>
+run_query("Your medical question here")
+</pre>
+
+<p>
+This design allows easy integration with:
+</p>
+
+<ul>
+  <li>Streamlit UI</li>
+  <li>FastAPI backend</li>
+  <li>Evaluation scripts</li>
+  <li>Jupyter notebooks</li>
+</ul>
+
+<hr>
+
+<h2>Use Cases</h2>
+
+<ul>
+  <li>Medical document question answering</li>
+  <li>Healthcare knowledge assistants</li>
+  <li>Research and guideline exploration</li>
+  <li>RAG architecture reference implementation</li>
+</ul>
+
+<hr>
+
+<h2>Tech Stack</h2>
+
+<ul>
+  <li>Python</li>
+  <li>LlamaIndex</li>
+  <li>ChromaDB</li>
+  <li>Ollama (Embeddings)</li>
+  <li>Google Gemini (LLM)</li>
+  <li>Streamlit (UI layer)</li>
+</ul>
+
+<hr>
+
+<h2>Project Philosophy</h2>
+
+<p>
+This project prioritizes:
+</p>
+
+<ul>
+  <li>Clean and readable code</li>
+  <li>Deterministic behavior</li>
+  <li>Production-oriented design</li>
+  <li>Ease of extension and deployment</li>
+</ul>
+
+<p>
+It is intentionally kept simple while still reflecting real-world RAG engineering practices.
+</p>
+
+</body>
+</html>

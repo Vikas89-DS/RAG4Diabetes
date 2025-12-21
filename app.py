@@ -1,4 +1,11 @@
 import streamlit as st
+from pathlib import Path
+from dotenv import load_dotenv
+
+# ---------------- Ensure .env loads correctly ----------------
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
 from rag4diabetes import run_query
 
 # ---------------- Page Config ----------------
@@ -15,8 +22,8 @@ st.caption("Diabetes knowledge assistant powered by Retrieval-Augmented Generati
 # ---------------- Instructions ----------------
 st.markdown(
     """
-    Ask questions related to **diabetes mellitus**.  
-    Answers are generated **only from the indexed documents**.
+    Ask questions related to **Diabetes**.  
+    Answers are generated **only from the indexed documents** (no external knowledge).
     """
 )
 
@@ -27,6 +34,11 @@ query = st.text_area(
     height=100
 )
 
+# ---------------- Cached Query Wrapper ----------------
+@st.cache_data(show_spinner=False)
+def cached_query(q: str):
+    return run_query(q)
+
 # ---------------- Button ----------------
 if st.button("Ask"):
     if not query.strip():
@@ -34,17 +46,17 @@ if st.button("Ask"):
     else:
         with st.spinner("Searching knowledge base..."):
             try:
-                response = run_query(query)
+                response = cached_query(query)
 
                 # -------- Answer --------
                 st.subheader("Answer")
                 st.write(response.response)
 
-                # -------- Sources --------
+                # -------- Sources (Optional / Expandable) --------
                 if response.source_nodes:
-                    st.subheader("Source Contexts")
-                    for i, node in enumerate(response.source_nodes, start=1):
-                        with st.expander(f"Context {i}"):
+                    with st.expander("View source contexts"):
+                        for i, node in enumerate(response.source_nodes, start=1):
+                            st.markdown(f"**Context {i}**")
                             st.write(node.node.get_content())
 
             except Exception as e:
@@ -53,4 +65,4 @@ if st.button("Ask"):
 
 # ---------------- Footer ----------------
 st.markdown("---")
-st.caption("RAG4Diabetes | Retrieval-Augmented Generation")
+st.caption("RAG4Diabetes | RAG system with hybrid retrieval & cross-encoder reranking")

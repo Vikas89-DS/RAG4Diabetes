@@ -37,9 +37,9 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.retrievers.bm25 import BM25Retriever
 from llama_index.core.query_engine import RetrieverQueryEngine
-from llama_index.core.postprocessor import LLMRerank
+from llama_index.core.postprocessor import SentenceTransformerRerank
 
-from llama_index.llms.gemini import Gemini
+from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
@@ -54,8 +54,9 @@ embed_model = OllamaEmbedding(
     base_url="http://localhost:11434",
 )
 
-llm = Gemini(
+llm = GoogleGenAI(
     model="models/gemini-2.5-flash",
+    temperature= 0.3,
     api_key=GEMINI_API_KEY,
 )
 
@@ -80,7 +81,7 @@ documents = SimpleDirectoryReader(
 
 splitter = SentenceSplitter(
     chunk_size=256,
-    chunk_overlap=50
+    chunk_overlap=25
 )
 
 nodes = splitter.get_nodes_from_documents(documents)
@@ -156,9 +157,8 @@ qa_prompt = PromptTemplate(
     "Instructions:\n"
     "- Answer using ONLY the information from the context.\n"
     "- Do NOT use external knowledge.\n"
-    "- If information is missing, say exactly:\n"
-    "  \"I do not have the information based on the provided context.\"\n"
-    "- Answer in concise bullet points.\n\n"
+    "- Combine and synthesize information from multiple context passages if needed.\n"
+    "- Write the answer as a clear, professional advisory explanation in paragraph form.\n\n"
     "Query: {query_str}\n"
     "Answer:"
 )
@@ -167,25 +167,28 @@ qa_prompt = PromptTemplate(
 # Retrievers
 # =========================
 
-vector_retriever = index.as_retriever(similarity_top_k=5)
+vector_retriever = index.as_retriever(similarity_top_k=10)
 
 bm25_retriever = BM25Retriever.from_defaults(
     nodes=nodes,
-    similarity_top_k=5
+    similarity_top_k=10
 )
 
 fusion_retriever = QueryFusionRetriever(
     retrievers=[vector_retriever, bm25_retriever],
-    similarity_top_k=5,
-    num_queries=4,
+    similarity_top_k=10,
+    num_queries=1,
     use_async=True,
 )
 
 # =========================
-# Re-ranking
+# Re-ranker
 # =========================
 
-reranker = LLMRerank(top_n=5)
+reranker = SentenceTransformerRerank(
+    model="cross-encoder/ms-marco-MiniLM-L-6-v2",
+    top_n=10
+)
 
 # =========================
 # Query Engine

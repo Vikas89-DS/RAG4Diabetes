@@ -1,165 +1,165 @@
-<h1>RAG4Diabetes</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RAG4Diabetes – Idempotent RAG System</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+      color: #1f2937;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #ffffff;
+    }
 
-<p>
-<b>RAG4Diabetes</b> is a production-ready Retrieval-Augmented Generation (RAG) system
-designed to answer diabetes-related questions strictly from provided medical documents.
-The project emphasizes correctness, reproducibility, and clean engineering practices.
-</p>
+    h1, h2, h3 {
+      color: #111827;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 6px;
+    }
 
-<hr/>
+    h1 {
+      font-size: 32px;
+    }
 
-<h2>Objective</h2>
+    h2 {
+      margin-top: 32px;
+    }
 
-<p>
-The primary objective of this project is to build a RAG-based system that can reliably
-provide diabetes-related information, including:
-</p>
+    p {
+      margin: 12px 0;
+    }
 
-<ul>
-  <li>Types of diabetes</li>
-  <li>Risk factors and symptoms</li>
-  <li>Treatment approaches</li>
-  <li>Lifestyle and health choices for diabetes management</li>
-</ul>
+    ul {
+      margin: 12px 0 12px 20px;
+    }
 
-<p>
-From a personal learning perspective, this project was created to explore the
-<b>LlamaIndex framework</b> in depth and to understand how real-world RAG systems are
-designed and implemented. The focus was on building a practical, end-to-end RAG pipeline
-rather than a simplified or toy implementation.
-</p>
+    code, pre {
+      background: #f3f4f6;
+      padding: 10px;
+      display: block;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
 
-<hr/>
+    .tag {
+      display: inline-block;
+      background: #e5e7eb;
+      padding: 4px 10px;
+      margin: 4px 6px 4px 0;
+      border-radius: 20px;
+      font-size: 13px;
+    }
 
-<h2>System Architecture</h2>
+    .section {
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
 
-<ul>
-  <li><b>Document Loader:</b> Recursively loads PDFs and text files from a configurable directory</li>
-  <li><b>Chunking:</b> Sentence-aware chunking with overlap to preserve semantic context</li>
-  <li><b>Embeddings:</b> Local Ollama embedding model for cost-efficient vectorization</li>
-  <li><b>Vector Store:</b> Persistent ChromaDB for long-term storage</li>
-  <li><b>Retrieval:</b> Hybrid retrieval using Vector Search and BM25</li>
-  <li><b>Query Fusion:</b> Multi-query expansion to improve recall</li>
-  <li><b>Re-Ranking:</b> LLM-based reranking to select the most relevant chunks</li>
-</ul>
+  <h1>RAG4Diabetes</h1>
+  <p><strong>Idempotent, Production-Style Retrieval Augmented Generation System</strong></p>
 
-<hr/>
+  <div class="section">
+    <h2>Overview</h2>
+    <p>
+      RAG4Diabetes is a production-oriented Retrieval Augmented Generation (RAG) system
+      designed to answer diabetes-related queries using only retrieved document context.
+    </p>
+    <p>
+      The pipeline is fully idempotent — previously processed document chunks are not
+      re-embedded or re-inserted when the pipeline is re-run.
+    </p>
+  </div>
 
-<h2>Idempotent Data Ingestion</h2>
+  <div class="section">
+    <h2>Key Features</h2>
+    <ul>
+      <li>Idempotent ingestion using SHA-256 chunk hashing</li>
+      <li>Hybrid retrieval: Vector Search + BM25</li>
+      <li>Query Fusion Retriever for improved recall</li>
+      <li>Cross-encoder re-ranking for high-quality context selection</li>
+      <li>Strict context-only answering to prevent hallucinations</li>
+      <li>Persistent vector storage with ChromaDB</li>
+      <li>Import-safe design for Streamlit or API usage</li>
+    </ul>
+  </div>
 
-<p>
-The system is designed to be safely re-run multiple times without duplicating data
-or corrupting the vector database.
-</p>
+  <div class="section">
+    <h2>Tech Stack</h2>
+    <div class="tag">LlamaIndex</div>
+    <div class="tag">Gemini 2.5 Flash</div>
+    <div class="tag">Google GenAI</div>
+    <div class="tag">Ollama</div>
+    <div class="tag">nomic-embed-text</div>
+    <div class="tag">ChromaDB</div>
+    <div class="tag">BM25</div>
+    <div class="tag">Query Fusion</div>
+    <div class="tag">Cross Encoder Re-Ranking</div>
+  </div>
 
-<ul>
-  <li>Each chunk is hashed using SHA-256</li>
-  <li>Chunk hashes are stored as metadata inside ChromaDB</li>
-  <li>Existing hashes are checked before embedding</li>
-  <li>Only new or unseen chunks are embedded and inserted</li>
-</ul>
+  <div class="section">
+    <h2>Architecture Flow</h2>
+    <ol>
+      <li>Documents are loaded recursively from <code>DATA_DIR</code></li>
+      <li>Sentence-level chunking with overlap</li>
+      <li>SHA-256 hash generated for every chunk</li>
+      <li>Existing chunks are skipped using stored hashes</li>
+      <li>Only new chunks are embedded and stored in ChromaDB</li>
+      <li>Hybrid retrieval (Vector + BM25) at query time</li>
+      <li>Query Fusion combines retriever outputs</li>
+      <li>Cross-encoder re-ranking refines final context</li>
+      <li>LLM generates answer strictly from retrieved context</li>
+    </ol>
+  </div>
 
-<p>
-This ensures deterministic behavior and allows incremental document updates.
-</p>
+  <div class="section">
+    <h2>Environment Variables</h2>
+    <pre>
+GEMINI_API_KEY=your_api_key
+DATA_DIR=path_to_documents
+CHROMA_PATH=path_to_chroma_storage
+COLLECTION_NAME=rag4diabetes
+    </pre>
+  </div>
 
-<hr/>
+  <div class="section">
+    <h2>Query Interface</h2>
+    <p>
+      The system exposes a single public function:
+    </p>
+    <pre>
+run_query(query: str)
+    </pre>
+    <p>
+      This function executes the full RAG pipeline and returns the complete
+      LlamaIndex response object, including retrieved source nodes.
+    </p>
+  </div>
 
-<h2>Prompt Safety</h2>
+  <div class="section">
+    <h2>Design Philosophy</h2>
+    <ul>
+      <li>Idempotency-first ingestion</li>
+      <li>Enterprise-grade retrieval pipeline</li>
+      <li>Low hallucination risk by design</li>
+      <li>Clean separation of ingestion and querying</li>
+    </ul>
+  </div>
 
-<p>
-The prompt enforces strict grounding rules:
-</p>
+  <div class="section">
+    <h2>Use Cases</h2>
+    <ul>
+      <li>Medical domain question answering</li>
+      <li>Enterprise document intelligence</li>
+      <li>RAG experimentation and evaluation</li>
+      <li>LLM system design demonstrations</li>
+    </ul>
+  </div>
 
-<ul>
-  <li>Answers are generated only from retrieved document context</li>
-  <li>No external or prior knowledge is allowed</li>
-  <li>If information is missing, the model explicitly states it</li>
-</ul>
-
-<p>
-This significantly reduces hallucination and improves trustworthiness.
-</p>
-
-<hr/>
-
-<h2>Configuration</h2>
-
-<p>
-All configuration is managed through a <code>.env</code> file:
-</p>
-
-<pre>
-DATA_DIR=./data
-CHROMA_PATH=./chroma_db
-COLLECTION_NAME=diabetes_vectors
-GEMINI_API_KEY=your_api_key_here
-</pre>
-
-<p>
-This makes the project portable across environments such as local setups, Docker,
-and cloud deployments.
-</p>
-
-<hr/>
-
-<h2>Query Execution</h2>
-
-<p>
-The core query interface is exposed via a single function:
-</p>
-
-<pre>
-run_query("Your diabetes-related question here")
-</pre>
-
-<p>
-This design allows easy integration with:
-</p>
-
-<ul>
-  <li>Streamlit UI</li>
-  <li>FastAPI backends</li>
-  <li>Evaluation or testing scripts</li>
-  <li>Jupyter notebooks</li>
-</ul>
-
-<hr/>
-
-<h2>Use Cases</h2>
-
-<ul>
-  <li>Medical document question answering</li>
-  <li>Healthcare knowledge assistants</li>
-  <li>Exploration of diabetes-related guidelines and research</li>
-  <li>Reference implementation for RAG architectures</li>
-</ul>
-
-<hr/>
-
-<h2>Tech Stack</h2>
-
-<ul>
-  <li>Python</li>
-  <li>LlamaIndex</li>
-  <li>ChromaDB</li>
-  <li>Ollama (Embeddings)</li>
-  <li>Google Gemini (LLM)</li>
-  <li>Streamlit</li>
-</ul>
-
-<hr/>
-
-<h2>Project Philosophy</h2>
-
-<ul>
-  <li>Clean and readable code</li>
-  <li>Deterministic and idempotent behavior</li>
-  <li>Production-oriented design</li>
-  <li>Ease of extension and deployment</li>
-</ul>
-
-<p>
-The project is intentionally kept simple while still reflecting real-world RAG
-engineering practices.
-</p>
+</body>
+</html>
